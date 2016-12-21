@@ -1,6 +1,7 @@
 import assert from 'assert';
 import fs from 'fs';
 import http from 'http';
+import https from 'https';
 import path from 'path';
 
 import { S3 } from 'aws-sdk';
@@ -97,7 +98,8 @@ describe('User visits bucket website endpoint', () => {
                         port: process.env.AWS_ON_AIR ? 80 : 8000,
                         method: 'POST',
                     };
-                    const req = http.request(options, res => {
+                    const module = conf.https ? https : http;
+                    const req = module.request(options, res => {
                         const body = [];
                         res.on('data', chunk => {
                             body.push(chunk);
@@ -134,7 +136,7 @@ describe('User visits bucket website endpoint', () => {
                     assert.strictEqual(err,
                         null, `Found unexpected err ${err}`);
                     s3.putObject({ Bucket: bucket,
-                        Key: 'www/index.html',
+                        Key: 'pathprefix/index.html',
                         ACL: 'public-read',
                         Body: fs.readFileSync(path.join(__dirname,
                             '/websiteFiles/index.html')),
@@ -143,13 +145,14 @@ describe('User visits bucket website endpoint', () => {
             });
 
             afterEach(done => {
-                s3.deleteObject({ Bucket: bucket, Key: 'www/index.html' },
+                s3.deleteObject({ Bucket: bucket, Key:
+                    'pathprefix/index.html' },
                 done);
             });
 
             it('should serve indexDocument if path request without key',
             done => {
-                browser.visit(`${endpoint}/www/`, () => {
+                browser.visit(`${endpoint}/pathprefix/`, () => {
                     WebsiteConfigTester.checkHTML(browser, 'index-user');
                     done();
                 });
@@ -157,7 +160,7 @@ describe('User visits bucket website endpoint', () => {
 
             it('should serve indexDocument if path request with key',
             done => {
-                browser.visit(`${endpoint}/www/index.html`, () => {
+                browser.visit(`${endpoint}/pathprefix/index.html`, () => {
                     WebsiteConfigTester.checkHTML(browser, 'index-user');
                     done();
                 });
