@@ -22,6 +22,9 @@ const hostname = `${bucket}.s3-website-us-east-1.amazonaws.com`;
 const endpoint = process.env.AWS_ON_AIR ? `${transport}://${hostname}` :
     `${transport}://${hostname}:8000`;
 
+const redirectEndpoint = conf.https ? 'https://www.google.com' :
+    'http://www.google.com';
+
 function putBucketWebsiteAndPutObjectRedirect(redirect, condition, key, done) {
     const webConfig = new WebsiteConfigTester('index.html');
     webConfig.addRoutingRule(redirect, condition);
@@ -229,7 +232,7 @@ describe('User visits bucket website endpoint', () => {
             });
         });
 
-        describe('redirect all requests to http://www.google.com', () => {
+        describe(`redirect all requests to ${redirectEndpoint}`, () => {
             beforeEach(done => {
                 const redirectAllTo = {
                     HostName: 'www.google.com',
@@ -240,24 +243,27 @@ describe('User visits bucket website endpoint', () => {
                     WebsiteConfiguration: webConfig }, done);
             });
 
-            it('should redirect to http://www.google.com', done => {
+            it(`should redirect to ${redirectEndpoint}`, done => {
                 browser.visit(endpoint, () => setTimeout(() => {
                     WebsiteConfigTester.checkHTML(browser, '200',
-                      'http://www.google.com');
+                      redirectEndpoint);
                     done();
                 }, 5000));
             });
 
-            it('should redirect to http://www.google.com/about', done => {
+            it(`should redirect to ${redirectEndpoint}/about`, done => {
                 browser.visit(`${endpoint}/about`, () => setTimeout(() => {
                     WebsiteConfigTester.checkHTML(browser, '200',
-                      'http://www.google.com/about/');
+                      `${redirectEndpoint}/about/`);
                     done();
                 }, 5000));
             });
         });
 
         describe('redirect all requests to https://www.google.com', () => {
+            // Note: these tests will all redirect to https even if
+            // conf does not have https since protocol in website config
+            // specifies https
             beforeEach(done => {
                 const redirectAllTo = {
                     HostName: 'www.google.com',
@@ -348,11 +354,11 @@ describe('User visits bucket website endpoint', () => {
                     WebsiteConfiguration: webConfig }, done);
             });
 
-            it('should redirect to http://www.google.com if error 403' +
+            it(`should redirect to ${redirectEndpoint} if error 403` +
             ' occured', done => {
                 browser.visit(endpoint, () => setTimeout(() => {
                     WebsiteConfigTester.checkHTML(browser, '200',
-                    'http://www.google.com');
+                    redirectEndpoint);
                     done();
                 }, 5000));
             });
@@ -372,11 +378,11 @@ describe('User visits bucket website endpoint', () => {
                     WebsiteConfiguration: webConfig }, done);
             });
 
-            it('should redirect to https://www.google.com/about if ' +
+            it(`should redirect to ${redirectEndpoint}/about if ` +
             'key prefix is equal to "about"', done => {
                 browser.visit(`${endpoint}/about/`, () => setTimeout(() => {
                     WebsiteConfigTester.checkHTML(browser, '200',
-                    'http://www.google.com/about/');
+                    `${redirectEndpoint}/about/`);
                     done();
                 }, 5000));
             });
@@ -398,11 +404,11 @@ describe('User visits bucket website endpoint', () => {
                     WebsiteConfiguration: webConfig }, done);
             });
 
-            it('should redirect to http://www.google.com if ' +
+            it(`should redirect to ${redirectEndpoint} if ` +
             'key prefix is equal to "about" AND error code 403', done => {
                 browser.visit(`${endpoint}/about/`, () => setTimeout(() => {
                     WebsiteConfigTester.checkHTML(browser, '200',
-                      'http://www.google.com/about/');
+                      `${redirectEndpoint}/about/`);
                     done();
                 }, 5000));
             });
@@ -429,7 +435,7 @@ describe('User visits bucket website endpoint', () => {
             it('should redirect to the first one', done => {
                 browser.visit(`${endpoint}/about/`, () => setTimeout(() => {
                     WebsiteConfigTester.checkHTML(browser, '200',
-                      'http://www.google.com/about/');
+                      `${redirectEndpoint}/about/`);
                     done();
                 }, 5000));
             });
@@ -502,11 +508,11 @@ describe('User visits bucket website endpoint', () => {
                     WebsiteConfiguration: webConfig }, done);
             });
 
-            it('should redirect to www.google.com/about if ' +
+            it(`should redirect to ${redirectEndpoint}/about if ` +
             'ReplaceKeyPrefixWith equals "/about"', done => {
                 browser.visit(endpoint, () => setTimeout(() => {
                     WebsiteConfigTester.checkHTML(browser, '200',
-                    'http://www.google.com/about/');
+                    `${redirectEndpoint}/about/`);
                     done();
                 }, 5000));
             });
