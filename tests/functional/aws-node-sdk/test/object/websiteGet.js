@@ -43,7 +43,17 @@ function putBucketWebsiteAndPutObjectRedirect(redirect, condition, key, done) {
 // without them. If they still fail, consider increasing the timeout or using
 // mocha's this.retries method to auto-retry the test after failure.
 describe('User visits bucket website endpoint', () => {
+    before(() => {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    });
+    after(() => {
+        process.env.NODE_TLS_REJECT_UNAUTHORIZED = undefined;
+    });
     const browser = new Browser();
+    browser.on('error', err => {
+        process.stdout.write('zombie encountered err loading resource or ' +
+            'evaluating javascript:', err);
+    });
 
     it('should return 404 when no such bucket', done => {
         browser.visit(endpoint, () => {

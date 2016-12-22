@@ -33,10 +33,6 @@ export class WebsiteConfigTester {
     }
 
     static checkHTML(browser, type, url, bucketName) {
-        browser.on('error', err => {
-            process.stdout.write('zombie encountered err loading resource or ' +
-                'evaluating javascript:', err);
-        });
         // 404 error
         if (url) {
             browser.assert.url(url);
