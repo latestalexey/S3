@@ -105,13 +105,21 @@ describe('User visits bucket website endpoint', () => {
                         res.on('data', chunk => {
                             body.push(chunk);
                         });
+                        res.on('error', err => {
+                            process.stdout.write('err on post response');
+                            return done(err);
+                        });
                         res.on('end', () => {
                             assert.strictEqual(res.statusCode, 405);
                             const total = body.join('');
                             assert(total.indexOf('<head><title>405 ' +
                                 'Method Not Allowed</title></head>') > -1);
-                            done();
+                            return done();
                         });
+                    });
+                    req.on('error', err => {
+                        process.stdout.write('err from post request');
+                        return done(err);
                     });
                     req.end();
                 });
