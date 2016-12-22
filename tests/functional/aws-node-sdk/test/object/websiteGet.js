@@ -97,6 +97,7 @@ describe('User visits bucket website endpoint', () => {
                         hostname,
                         port: process.env.AWS_ON_AIR ? 80 : 8000,
                         method: 'POST',
+                        rejectUnauthorized: false,
                     };
                     const module = conf.https ? https : http;
                     const req = module.request(options, res => {
